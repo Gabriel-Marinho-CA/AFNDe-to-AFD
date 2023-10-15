@@ -1,0 +1,26 @@
+# Automato Finito com movimentos vazios
+# Este automato detecta qualquer string contendo 00
+# L(G) = (1|0)* 00 (1|0)*
+
+Q A B C D
+
+q A
+
+F D
+
+A 1 0
+
+T A 1 A
+T A 0 A
+T A 0 B
+T B ê C
+T C 0 D
+T D 1 D
+T D ê C
+
+P 101010010101
+P 1010101
+P 100
+P 1010
+P 1010
+P 1
