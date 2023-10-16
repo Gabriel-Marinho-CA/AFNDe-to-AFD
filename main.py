@@ -6,7 +6,7 @@ from graphviz import Digraph
 
 def get_line_content(line):
     try:
-        return set(line[1:].strip().split(' '))
+        return set(line[0:].strip().split(' '))
     except:
         raise ValueError(
             f'Erro ao tentar pegar os valores da linha do arquivo.')
@@ -35,11 +35,13 @@ def transform_transactions(aux_T, T):
 
 if __name__ == "__main__":
     try:
-        content_file = open_file('AFND_E_DEFINITION.txt').split('\n')
+        content_file = open_file('entrada.txt').split('\n')
+        content_words = open_file('palavras.txt').split('\n')
+
 
         # Definição para afnd-e
         # AF = (A, Q, q, T, F)
-        A = []          # Alfabeto de entrada do autômato
+        A = {'1', '0'}         # Alfabeto de entrada do autômato
         Q = []          # Estados do autômato
         F = []          # Estados finais do autômato
         T = {}          # Função de transição do autômato
@@ -49,66 +51,49 @@ if __name__ == "__main__":
         P = []      # Palavras para testar
 
         line_count = 0
-        for line in content_file:
-            line_count += 1
-            if line != '':
-                match line[0]:
-                    case 'A':
-                        A = get_line_content(line)
-                        if A == {''}:
-                            raise ValueError(
-                                f'Não foi possível identificar o alfabeto de entrada na linha {line_count}.')
-                    case 'Q':
-                        Q = get_line_content(line)
-                        if Q == {''}:
-                            raise ValueError(
-                                f'Não foi possível identificar os estados na linha {line_count}.')
-                    case 'q':
-                        q = line[1:].strip()
-                        if q == '':
-                            raise ValueError(
-                                f'Não foi possível identificar o estado inicial na linha {line_count}.')
-                    case 'F':
-                        F = get_line_content(line)
-                        if F == {''}:
-                            raise ValueError(
-                                f'Não foi possível identificar o estado final na linha {line_count}.')
-                    case 'T':
-                        transaction = line[1:].strip().split()
-                        try:
-                            aux_T.add(
-                                (transaction[0], transaction[1], transaction[2]))
-                        except:
-                            raise ValueError(
-                                f'Não foi possível identificar a transição na linha {line_count}.')
-                    case 'P':
-                        word = line[1:].strip()
-                        P.append(word)
+
+        Q = get_line_content(content_file[0])
+        q = content_file[1]
+        F = get_line_content(content_file[2])
+
+        content_transition = content_file[3:]
+
+        for line in content_transition:
+          transaction = line[0:].strip().split()
+          try:
+              aux_T.add(
+                  (transaction[0], transaction[1], transaction[2]))
+
+          except:
+              raise ValueError(
+                  f'Não foi possível identificar a transição na linha {line_count}.')
 
         T = add_transictions_pattern(Q, A, T)
         T = transform_transactions(aux_T, T)
 
         M_AFNDE = AF(A, Q, q, T, F)
         M_AFND = AFNDE_to_AFND(M_AFNDE)
-        M_AFD = AFND_to_AFD(M_AFND)
+        M_AFD = AFND_to_AFD(M_AFND)            
+
+        for words in content_words:
+          P.append(words)
 
         for word in P:
-            M_AFD.check_word(word)
+          M_AFD.check_word(word)
 
         # TESTA PALAVRAS
-        save_file("Words_results.txt", M_AFD.all_checks_str)
+        save_file("saida_palavras.txt", M_AFD.all_checks_str)
 
         # Salvar a tabela do AFD em um arquivo de saída
-        afd_table = "Q {}\n".format(" ".join(M_AFD.Q))
-        afd_table += "q {}\n".format(M_AFD.q)
-        afd_table += "F {}\n".format(" ".join(M_AFD.F))
-        afd_table += "A {}\n".format(" ".join(M_AFD.A))
+        afd_table = "{}\n".format(" ".join(M_AFD.Q))
+        afd_table += "{}\n".format(M_AFD.q)
+        afd_table += "{}\n".format(" ".join(M_AFD.F))
 
         for state, transitions in M_AFD.T.items():
             for symbol, next_state in transitions.items():
-                afd_table += "T {} {} {}\n".format(state, symbol, next_state)
+                afd_table += "{} {} {}\n".format(state, symbol, next_state)
 
-        save_file("AFD_Table.txt", afd_table)
+        save_file("afd_tabela.txt", afd_table)
 
         # Gráfico do AFND
         afnd_graph = Digraph('AFND')
@@ -152,7 +137,6 @@ if __name__ == "__main__":
                 afd_graph.node(state, label=state, shape='circle', color='red')
             # Adicione dois círculos vermelhos aos estados finais do AFD
             elif state in final_states_afd:
-                print("ESDAS",state)
                 afd_graph.node(state, label=state, shape='doublecircle', color='red')
             else:
                 afd_graph.node(state, label=state)

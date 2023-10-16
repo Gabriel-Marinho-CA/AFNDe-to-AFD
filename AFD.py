@@ -15,6 +15,6 @@ class AFD(AF):
             else:
                 cur_state = None
         if cur_state in self.F:
-            self.all_checks_str += f'M aceita a palavra <{word}>\n'
+            self.all_checks_str += f'{word} aceita\n'
         else:
-            self.all_checks_str += f'M rejeita a palavra <{word}>\n'
+            self.all_checks_str += f'{word} rejeita\n'
